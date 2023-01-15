@@ -1,0 +1,5 @@
+Flask==2.2.2
+Flask_Cors==3.0.10
+Flask_JWT_Extended==4.4.4
+peewee==3.15.4
+PyMySQL==1.0.2
