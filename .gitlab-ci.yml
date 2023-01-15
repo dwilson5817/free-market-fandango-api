@@ -15,8 +15,8 @@ cache:
 sast:
   stage: test
 
-deploy:
-  stage: deploy
+build-lambda:
+  stage: build
   script:
     - python --version  # For debugging
     - pip install virtualenv
