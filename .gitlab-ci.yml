@@ -3,6 +3,7 @@ image: python:3.9-alpine
 stages:
 - test
 - build
+- deploy
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -15,7 +16,7 @@ cache:
 sast:
   stage: test
 
-build-lambda:
+python-build:
   stage: build
   script:
     - pip install virtualenv
@@ -27,6 +28,11 @@ build-lambda:
     expire_in: 1 week
     paths:
       - lambda.zip
+
+trigger-cdk:
+  stage: deploy
+  trigger:
+    project: $CDK_DOWNSTREAM_PROJECT
 
 include:
 - template: Security/SAST.gitlab-ci.yml
