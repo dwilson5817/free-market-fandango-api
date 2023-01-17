@@ -9,7 +9,7 @@ from peewee import MySQLDatabase, Model, IntegerField, DoubleField, TextField, F
     PrimaryKeyField
 
 app = Flask(__name__)
-app.config["JWT_SECRET_KEY"] = secrets.token_hex(nbytes=1024)
+app.config["JWT_SECRET_KEY"] = os.environ['SECRET_KEY']
 app.config["JWT_ERROR_MESSAGE_KEY"] = 'message'
 
 CORS(app)
@@ -138,7 +138,7 @@ def hello_world():
 def auth():
     password = request.json.get('admin_password', None)
 
-    if password == Setting.get(key=ADMIN_PASSWORD_KEY).value:
+    if password == os.environ['SECRET_KEY']:
         return jsonify({
             'token': create_access_token(identity=secrets.token_hex()),
         }), 200
@@ -498,13 +498,6 @@ def delete_placeholder(placeholder_name):
 
 database.connect()
 database.create_tables([Setting, Account, Stock, StockPrice, Purchase, Event, Tag, StockTag, EventTag, Placeholder, PlaceholderValue])
-
-ADMIN_PASSWORD_KEY = "admin_password"
-
-if Setting.get_or_none(key=ADMIN_PASSWORD_KEY) is None:
-    admin_password_record = Setting(key=ADMIN_PASSWORD_KEY, value=secrets.token_hex(nbytes=8))
-    admin_password_record.save()
-
 
 if __name__ == '__main__':
     app.run()
