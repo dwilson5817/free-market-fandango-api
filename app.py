@@ -138,7 +138,7 @@ def hello_world():
 def auth():
     password = request.json.get('admin_password', None)
 
-    if password == os.environ['SECRET_KEY']:
+    if password == os.environ['ADMIN_PASSWORD']:
         return jsonify({
             'token': create_access_token(identity=secrets.token_hex()),
         }), 200
