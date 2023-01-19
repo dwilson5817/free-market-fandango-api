@@ -197,7 +197,7 @@ def put_account():
 def format_account_json(account):
     return {
         account.card_number: {
-            'fullName': account.name,
+            'name': account.name,
             'balance': account.balance
         }
     }
@@ -225,7 +225,7 @@ def delete_account(card_number):
 def put_stock():
     code = request.json.get('code', None)
     full_name = request.json.get('fullName', None)
-    price = request.json.get('price', None)
+    price = request.json.get('currentPrice', None)
     tags = request.json.get('tags', None)
 
     if code is None or full_name is None or price is None:
@@ -475,7 +475,9 @@ def put_placeholder():
 
 def format_placeholder_json(placeholder):
     return {
-        placeholder.name: [placeholder_value.value for placeholder_value in placeholder.values]
+        placeholder.name: {
+            'values': [placeholder_value.value for placeholder_value in placeholder.values]
+        }
     }
 
 
