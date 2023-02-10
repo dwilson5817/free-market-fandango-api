@@ -1,20 +1,45 @@
 import os
 import secrets
 from datetime import datetime
+from enum import Enum
+from random import choice
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from peewee import MySQLDatabase, Model, IntegerField, DoubleField, TextField, ForeignKeyField, DateTimeField, \
-    PrimaryKeyField
+    PrimaryKeyField, BooleanField
 
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = os.environ['SECRET_KEY']
 app.config["JWT_ERROR_MESSAGE_KEY"] = 'message'
 
 CORS(app)
-database = MySQLDatabase(os.environ['DATABASE_NAME'], user=os.environ['DATABASE_USER'], password=os.environ['DATABASE_PASS'], host=os.environ['DATABASE_HOST'], port=int(os.environ['DATABASE_PORT']))
+database = MySQLDatabase(os.environ['DATABASE_NAME'], user=os.environ['DATABASE_USER'],
+                         password=os.environ['DATABASE_PASS'], host=os.environ['DATABASE_HOST'],
+                         port=int(os.environ['DATABASE_PORT']))
 jwt = JWTManager(app)
+
+
+class Settings(Enum):
+    CURRENT_EVENT = 'CurrentEvent'
+    EVENT_TIME = 'EventTime'
+
+
+def get_setting(setting):
+    return Setting.get_or_none(key=setting.value).value
+
+
+def save_setting(setting, value):
+    current_setting = Setting.get_or_none(key=setting.value)
+
+    if current_setting is None:
+        current_setting = Setting.create()
+
+    current_setting.key = setting.value
+    current_setting.value = value
+
+    current_setting.save()
 
 
 class Setting(Model):
@@ -79,6 +104,8 @@ class Event(Model):
     id = PrimaryKeyField()
     title = TextField()
     body = TextField()
+    breaking = BooleanField()
+    video_url = TextField(null=True)
 
     class Meta:
         database = database
@@ -296,7 +323,7 @@ def format_stock_json(stock):
         stock.code: {
             'fullName': stock.full_name,
             'currentPrice': stock.get_current_price(),
-            'pctChange': 0 if stock.code == 'XYZ' else (-1 if stock.code == 'ABC' else 1),
+            'pctChange': 0 if stock.code == 'RDW' else (-21.8 if stock.code == 'WSK' else 12.4),
             'tags': [stock_tag.tag.name for stock_tag in stock.tags],
         }
     }
@@ -317,6 +344,29 @@ def delete_stock(stock_code):
         return jsonify({
             'message': 'Stock not found.'
         }), 404
+
+
+@app.get('/purchase')
+@jwt_required()
+def get_purchases():
+    response = {}
+
+    for purchase in Purchase.select().order_by(Purchase.datetime.asc()):
+        response.update(format_purchase_json(purchase))
+
+    return jsonify(response), 200
+
+
+def format_purchase_json(purchase):
+    return {
+        purchase.id: {
+            'id': purchase.id,
+            'account': format_account_json(purchase.account),
+            'stock': format_stock_json(purchase.stock),
+            'datetime': purchase.datetime,
+            'price': purchase.price
+        }
+    }
 
 
 @app.post('/purchase')
@@ -377,6 +427,8 @@ def get_events(event_id=None):
 def put_event():
     title = request.json.get('title', None)
     body = request.json.get('body', None)
+    breaking = request.json.get('breaking', False)
+    video_url = request.json.get('videoUrl', None)
     tags = request.json.get('tags', None)
 
     if title is None or body is None:
@@ -384,7 +436,12 @@ def put_event():
             'message': 'Missing name and/or body of event.'
         }), 400
 
-    event = Event.create(title=title, body=body)
+    if breaking and video_url is None:
+        return jsonify({
+            'message': 'Video URL is required when breaking is true.'
+        }), 400
+
+    event = Event.create(title=title, body=body, breaking=breaking, video_url=video_url)
     event.save()
 
     if tags is not None:
@@ -496,6 +553,20 @@ def delete_placeholder(placeholder_name):
         return jsonify({
             'message': 'Account not found.'
         }), 404
+
+
+@app.get('/news')
+def get_tags():
+    events = Event.select()
+
+    current_event = choice(events)
+
+    return jsonify({
+        'title': current_event.title,
+        'body': current_event.body,
+        'breaking': current_event.breaking,
+        'videoUrl': current_event.video_url
+    })
 
 
 database.connect()
