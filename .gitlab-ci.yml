@@ -19,7 +19,7 @@ sast:
 python-build:
   stage: build
   script:
-  - apk add --no-cache gcc linux-headers zip mariadb-connector-c-dev
+  - apk add --no-cache gcc musl-dev zip mariadb-connector-c-dev
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
