@@ -1,0 +1,8 @@
+fastapi
+python_jose
+spotipy
+SQLAlchemy
+mariadb
+mangum
+starlette
+pydantic

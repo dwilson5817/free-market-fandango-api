@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from mangum import Mangum
 from starlette.middleware.cors import CORSMiddleware
 
 import models
@@ -36,3 +37,5 @@ app.include_router(purchases.router)
 app.include_router(settings.router)
 app.include_router(spotify.router)
 app.include_router(stocks.router)
+
+handler = Mangum(app, lifespan="off")
