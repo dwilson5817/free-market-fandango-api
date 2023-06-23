@@ -3,8 +3,8 @@ from spotipy import CacheHandler, Spotify, SpotifyOAuth
 from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse, Response
 
-from ..crud import spotify
-from ..dependencies import get_db, validate_jwt
+from crud import spotify
+from dependencies import get_db, validate_jwt
 
 router = APIRouter()
 

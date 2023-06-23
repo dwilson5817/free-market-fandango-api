@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
-from ..models import Account
-from ..schemas import AccountCreate
+from models import Account
+from schemas import AccountCreate
 
 
 def get_account(db: Session, account_id: int) -> Account:

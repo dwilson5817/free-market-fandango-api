@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from ..schemas import SettingUpdate
-from ..crud import settings
-from ..dependencies import get_db, validate_jwt
+from schemas import SettingUpdate
+from crud import settings
+from dependencies import get_db, validate_jwt
 
 router = APIRouter()
 

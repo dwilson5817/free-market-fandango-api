@@ -3,9 +3,9 @@ from http.client import HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
 
-from ..schemas import Stock, StockCreate
-from ..crud import stocks, price_changes, settings
-from ..dependencies import get_db, validate_jwt
+from schemas import Stock, StockCreate
+from crud import stocks, price_changes, settings
+from dependencies import get_db, validate_jwt
 
 router = APIRouter()
 

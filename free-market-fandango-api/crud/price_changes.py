@@ -3,8 +3,8 @@ import random
 
 from sqlalchemy.orm import Session
 
-from ..models import PriceChange, Stock
-from ..crud import settings, stocks, activations
+from models import PriceChange, Stock
+from crud import settings, stocks, activations
 
 
 def change_stock_price(db: Session, stock_code: str, min_pct: float, max_pct: float, reason: str):

@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from ..schemas import MarketActivation
-from ..crud import activations
-from ..dependencies import get_db, validate_jwt
+from schemas import MarketActivation
+from crud import activations
+from dependencies import get_db, validate_jwt
 
 router = APIRouter(
     prefix="/activation",

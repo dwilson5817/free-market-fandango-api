@@ -3,9 +3,9 @@ import random
 from sqlalchemy import func, text, and_
 from sqlalchemy.orm import Session
 
-from ..models import Event, EventActivation, MarketActivation, utc_now
-from ..schemas import EventCreate
-from ..crud import settings, price_changes, tags, activations
+from models import Event, EventActivation, MarketActivation, utc_now
+from schemas import EventCreate
+from crud import settings, price_changes, tags, activations
 
 
 def get_current_event(db: Session) -> Event | None:

@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 
-from ..models import Stock
-from ..schemas import StockCreate
-from ..crud import tags, price_changes
+from models import Stock
+from schemas import StockCreate
+from crud import tags, price_changes
 
 
 def get_stock(db: Session, stock_id: int):

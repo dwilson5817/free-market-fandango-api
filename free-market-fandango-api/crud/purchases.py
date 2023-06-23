@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 
-from ..models import Purchase
-from ..schemas import PurchaseCreate
-from ..crud import price_changes, accounts, settings
+from models import Purchase
+from schemas import PurchaseCreate
+from crud import price_changes, accounts, settings
 
 
 def get_purchase(db: Session, purchase_id: int):

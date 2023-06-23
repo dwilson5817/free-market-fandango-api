@@ -2,7 +2,7 @@ import os
 from datetime import timedelta, datetime
 from jose import jwt
 
-from ..constants import ALGORITHM
+from constants import ALGORITHM
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):

@@ -2,7 +2,7 @@ from enum import Enum
 
 from sqlalchemy.orm import Session
 
-from ..models import Setting
+from models import Setting
 
 
 class Settings(Enum):

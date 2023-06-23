@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from ..models import SpotifyToken
+from models import SpotifyToken
 
 
 def get_token(db: Session) -> SpotifyToken:

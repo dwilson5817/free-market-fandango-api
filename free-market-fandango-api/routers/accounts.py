@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
 
-from ..crud import accounts
-from ..dependencies import get_db, validate_jwt
-from ..schemas import Account, AccountCreate
+from crud import accounts
+from dependencies import get_db, validate_jwt
+from schemas import Account, AccountCreate
 
 router = APIRouter(
     prefix="/accounts",

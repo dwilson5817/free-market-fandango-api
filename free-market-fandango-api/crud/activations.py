@@ -1,7 +1,7 @@
 from sqlalchemy import or_, func, text
 from sqlalchemy.orm import Session
 
-from ..models import MarketActivation, utc_now
+from models import MarketActivation, utc_now
 
 
 def create_activation(db: Session) -> MarketActivation:

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from ..models import Stock, StockTag, Event, EventTag, Tag
+from models import Stock, StockTag, Event, EventTag, Tag
 
 
 def create_stock_tag(db: Session, db_stock: Stock, tag_name: str):

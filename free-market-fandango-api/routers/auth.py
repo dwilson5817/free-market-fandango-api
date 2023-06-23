@@ -5,9 +5,9 @@ from http.client import HTTPException
 from fastapi import APIRouter, HTTPException
 from starlette import status
 
-from ..constants import ACCESS_TOKEN_EXPIRE_MINUTES
-from ..crud.auth import create_access_token
-from ..schemas import Token, Auth
+from constants import ACCESS_TOKEN_EXPIRE_MINUTES
+from crud.auth import create_access_token
+from schemas import Token, Auth
 
 router = APIRouter(
     prefix="/auth",

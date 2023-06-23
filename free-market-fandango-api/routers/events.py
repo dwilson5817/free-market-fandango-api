@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
 
-from ..schemas import Event, EventCreate
-from ..crud import events
-from ..dependencies import get_db, validate_jwt
+from schemas import Event, EventCreate
+from crud import events
+from dependencies import get_db, validate_jwt
 
 router = APIRouter()
 
