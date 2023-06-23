@@ -3,8 +3,8 @@ import random
 
 from sqlalchemy.orm import Session
 
-import models
-from crud import settings, stocks, activations
+from ..models import PriceChange, Stock
+from ..crud import settings, stocks, activations
 
 
 def change_stock_price(db: Session, stock_code: str, min_pct: float, max_pct: float, reason: str):
@@ -29,13 +29,14 @@ def get_original_price(db: Session, stock_code: str) -> float:
 
 
 def get_current_price(db: Session, stock_code: str):
-    db_last_price_change = db.query(models.PriceChange).filter(models.PriceChange.stock_code == stock_code).order_by(models.PriceChange.changed_at.desc()).first()
+    db_last_price_change = db.query(PriceChange).filter(PriceChange.stock_code == stock_code).order_by(
+        PriceChange.changed_at.desc()).first()
 
     return db_last_price_change.new_price
 
 
 def create_price_change(db: Session, stock_code: str, new_price: float, reason: str):
-    db_price_change = models.PriceChange(stock_code=stock_code, new_price=round(new_price, 2), reason=reason)
+    db_price_change = PriceChange(stock_code=stock_code, new_price=round(new_price, 2), reason=reason)
     db.add(db_price_change)
     db.commit()
     db.refresh(db_price_change)
@@ -43,7 +44,7 @@ def create_price_change(db: Session, stock_code: str, new_price: float, reason: 
     return db_price_change
 
 
-def check_for_no_purchase(db: Session, stock: models.Stock):
+def check_for_no_purchase(db: Session, stock: Stock):
     last_purchase = stock.created_at
     last_price_change = stock.price_changes[-1].changed_at
 

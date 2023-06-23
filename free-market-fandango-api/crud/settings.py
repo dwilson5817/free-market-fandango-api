@@ -2,7 +2,7 @@ from enum import Enum
 
 from sqlalchemy.orm import Session
 
-import models
+from ..models import Setting
 
 
 class Settings(Enum):
@@ -30,16 +30,16 @@ setting_defaults = {
 }
 
 
-def get_settings(db: Session) -> list[models.Setting]:
-    return db.query(models.Setting).all()
+def get_settings(db: Session) -> list[Setting]:
+    return db.query(Setting).all()
 
 
 def get_setting_model(db: Session, setting: Settings):
-    return db.query(models.Setting).filter(models.Setting.key == setting.value).first()
+    return db.query(Setting).filter(Setting.key == setting.value).first()
 
 
 def get_setting(db: Session, setting: Settings):
-    db_setting = db.query(models.Setting).filter(models.Setting.key == setting.value).first()
+    db_setting = db.query(Setting).filter(Setting.key == setting.value).first()
 
     if not db_setting:
         return setting_defaults[setting]
@@ -48,7 +48,7 @@ def get_setting(db: Session, setting: Settings):
 
 
 def set_setting(db: Session, setting: Settings, value: int):
-    db_setting = db.query(models.Setting).filter(models.Setting.key == setting.value).first()
+    db_setting = db.query(Setting).filter(Setting.key == setting.value).first()
 
     if not value:
         delete_setting(db=db, setting=setting)
@@ -65,7 +65,7 @@ def set_setting(db: Session, setting: Settings, value: int):
 
 
 def create_setting(db: Session, setting: Settings, value: int):
-    db_setting = models.Setting(key=setting.value, value=value)
+    db_setting = Setting(key=setting.value, value=value)
 
     db.add(db_setting)
     db.commit()

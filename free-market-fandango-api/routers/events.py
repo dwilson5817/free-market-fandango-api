@@ -2,19 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
 
-import schemas
-from crud import events
-from dependencies import get_db, validate_jwt
+from ..schemas import Event, EventCreate
+from ..crud import events
+from ..dependencies import get_db, validate_jwt
 
 router = APIRouter()
 
 
-@router.put("/events/", response_model=schemas.Event, dependencies=[Depends(validate_jwt)])
-def create_event(event: schemas.EventCreate, db: Session = Depends(get_db)):
+@router.put("/events/", response_model=Event, dependencies=[Depends(validate_jwt)])
+def create_event(event: EventCreate, db: Session = Depends(get_db)):
     return events.create_event(db=db, event=event)
 
 
-@router.get("/events/", response_model=list[schemas.Event])
+@router.get("/events/", response_model=list[Event])
 def read_events(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     db_events = events.get_events(db, skip=skip, limit=limit)
 
@@ -31,7 +31,7 @@ def delete_event(event_id: int, db: Session = Depends(get_db)):
     events.delete_event(db=db, event=db_event)
 
 
-@router.get("/current_event/", response_model=schemas.Event)
+@router.get("/current_event/", response_model=Event)
 def read_current_event(db: Session = Depends(get_db)):
     current_event = events.get_current_event(db=db)
 

@@ -3,18 +3,19 @@ import random
 from sqlalchemy import func, text, and_
 from sqlalchemy.orm import Session
 
-import models
-import schemas
-from crud import settings, price_changes, tags, activations
+from ..models import Event, EventActivation, MarketActivation, utc_now
+from ..schemas import EventCreate
+from ..crud import settings, price_changes, tags, activations
 
 
-def get_current_event(db: Session) -> models.Event | None:
+def get_current_event(db: Session) -> Event | None:
     db_current_activation = activations.get_current_activation(db=db)
 
     if not db_current_activation:
         return None
 
-    db_current_event = db.query(models.EventActivation).filter(and_(models.EventActivation.market_activation_id == db_current_activation.id, models.EventActivation.ends_at > models.utc_now())).first()
+    db_current_event = db.query(EventActivation).filter(and_(
+        EventActivation.market_activation_id == db_current_activation.id, EventActivation.ends_at > utc_now())).first()
 
     if not db_current_event:
         return change_current_event(db=db, current_activation=db_current_activation)
@@ -22,11 +23,11 @@ def get_current_event(db: Session) -> models.Event | None:
     return db_current_event.event
 
 
-def change_current_event(db: Session, current_activation: models.MarketActivation) -> models.Event | None:
+def change_current_event(db: Session, current_activation: MarketActivation) -> Event | None:
     min_event_mins = settings.get_setting(db=db, setting=settings.Settings.NEWS_MIN_DURATION)
     max_event_mins = settings.get_setting(db=db, setting=settings.Settings.NEWS_MAX_DURATION)
 
-    events = db.query(models.Event).all()
+    events = db.query(Event).all()
     activated_events = [event_activation.event for event_activation in current_activation.events]
     events_not_yet_activated = [event for event in events if event not in activated_events]
 
@@ -36,7 +37,7 @@ def change_current_event(db: Session, current_activation: models.MarketActivatio
     new_event = random.choice(tuple(events_not_yet_activated))
     new_event_duration_mins = random.randint(min_event_mins, max_event_mins)
 
-    db_event_activation = models.EventActivation(market_activation_id=current_activation.id, event_id=new_event.id, ends_at=func.timestampadd(text('MINUTE'), new_event_duration_mins, models.utc_now()))
+    db_event_activation = EventActivation(market_activation_id=current_activation.id, event_id=new_event.id, ends_at=func.timestampadd(text('MINUTE'), new_event_duration_mins, utc_now()))
 
     db.add(db_event_activation)
     db.commit()
@@ -48,7 +49,7 @@ def change_current_event(db: Session, current_activation: models.MarketActivatio
     return db_event_activation.event
 
 
-def get_stocks_affected_by_event(event: models.Event):
+def get_stocks_affected_by_event(event: Event):
     result = set()
 
     for tag in event.tags:
@@ -59,15 +60,15 @@ def get_stocks_affected_by_event(event: models.Event):
 
 
 def get_event(db: Session, event_id: int):
-    return db.query(models.Event).filter(models.Event.id == event_id).first()
+    return db.query(Event).filter(Event.id == event_id).first()
 
 
 def get_events(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Event).offset(skip).limit(limit).all()
+    return db.query(Event).offset(skip).limit(limit).all()
 
 
-def create_event(db: Session, event: schemas.EventCreate):
-    db_event = models.Event(title=event.title,
+def create_event(db: Session, event: EventCreate):
+    db_event = Event(title=event.title,
                             body=event.body,
                             breaking=event.breaking,
                             video_url=event.video_url,
@@ -83,6 +84,6 @@ def create_event(db: Session, event: schemas.EventCreate):
     return db_event
 
 
-def delete_event(db: Session, event: models.Event):
+def delete_event(db: Session, event: Event):
     db.delete(event)
     db.commit()

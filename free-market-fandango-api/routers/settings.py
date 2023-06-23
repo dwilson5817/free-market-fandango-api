@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-import schemas
-from crud import settings
-from dependencies import get_db, validate_jwt
+from ..schemas import SettingUpdate
+from ..crud import settings
+from ..dependencies import get_db, validate_jwt
 
 router = APIRouter()
 
@@ -16,6 +16,6 @@ def read_settings(db: Session = Depends(get_db)):
 
 
 @router.put("/settings/", dependencies=[Depends(validate_jwt)])
-def update_settings(settings_schema: schemas.SettingUpdate, db: Session = Depends(get_db)):
+def update_settings(settings_schema: SettingUpdate, db: Session = Depends(get_db)):
     for key, value in settings_schema.settings.items():
         settings.set_setting(db=db, setting=settings.Settings(key), value=value)

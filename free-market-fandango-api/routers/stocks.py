@@ -3,9 +3,9 @@ from http.client import HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
 
-import schemas
-from crud import stocks, price_changes, settings
-from dependencies import get_db, validate_jwt
+from ..schemas import Stock, StockCreate
+from ..crud import stocks, price_changes, settings
+from ..dependencies import get_db, validate_jwt
 
 router = APIRouter()
 
@@ -18,8 +18,8 @@ def crash_market(db: Session = Depends(get_db)):
         price_changes.change_stock_price(db=db, stock_code=db_stock.code, min_pct=market_crash_loss, max_pct=market_crash_loss, reason="Market Crash")
 
 
-@router.put("/stocks/", response_model=schemas.Stock, dependencies=[Depends(validate_jwt)])
-def create_stock(stock: schemas.StockCreate, db: Session = Depends(get_db)):
+@router.put("/stocks/", response_model=Stock, dependencies=[Depends(validate_jwt)])
+def create_stock(stock: StockCreate, db: Session = Depends(get_db)):
     db_stock = stocks.get_stock_by_code(db, stock_code=stock.code)
 
     if db_stock:
@@ -28,7 +28,7 @@ def create_stock(stock: schemas.StockCreate, db: Session = Depends(get_db)):
     return stocks.create_stock(db=db, stock=stock)
 
 
-@router.get("/stocks/", response_model=list[schemas.Stock])
+@router.get("/stocks/", response_model=list[Stock])
 def read_stocks(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     db_stocks = stocks.get_stocks(db, skip=skip, limit=limit)
 
@@ -39,7 +39,7 @@ def read_stocks(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return db_stocks
 
 
-@router.put("/stocks/{stock_code}/", response_model=schemas.Stock, dependencies=[Depends(validate_jwt)])
+@router.put("/stocks/{stock_code}/", response_model=Stock, dependencies=[Depends(validate_jwt)])
 def read_stock(stock_code: str, in_stock: bool = True, db: Session = Depends(get_db)):
     db_stock = stocks.get_stock_by_code(db, stock_code=stock_code)
 

@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-import schemas
-from crud import activations
-from dependencies import get_db, validate_jwt
+from ..schemas import MarketActivation
+from ..crud import activations
+from ..dependencies import get_db, validate_jwt
 
 router = APIRouter(
     prefix="/activation",
@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=schemas.MarketActivation)
+@router.get("/", response_model=MarketActivation)
 def read_status(db: Session = Depends(get_db)):
     db_market_activation = activations.get_current_activation(db=db)
 
@@ -23,12 +23,12 @@ def read_status(db: Session = Depends(get_db)):
     return activations.get_current_activation(db=db)
 
 
-@router.put("/open/", response_model=schemas.MarketActivation, dependencies=[Depends(validate_jwt)])
+@router.put("/open/", response_model=MarketActivation, dependencies=[Depends(validate_jwt)])
 def start_market(db: Session = Depends(get_db)):
     return activations.create_activation(db=db)
 
 
-@router.put("/close/", response_model=schemas.MarketActivation, dependencies=[Depends(validate_jwt)])
+@router.put("/close/", response_model=MarketActivation, dependencies=[Depends(validate_jwt)])
 def stop_market(ends_in: int, db: Session = Depends(get_db)):
     db_market_activation = activations.get_current_activation(db=db)
 

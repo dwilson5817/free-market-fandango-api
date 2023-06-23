@@ -1,24 +1,24 @@
 from sqlalchemy.orm import Session
 
-import models
-import schemas
-from crud import tags, price_changes
+from ..models import Stock
+from ..schemas import StockCreate
+from ..crud import tags, price_changes
 
 
 def get_stock(db: Session, stock_id: int):
-    return db.query(models.Stock).filter(models.Stock.id == stock_id).first()
+    return db.query(Stock).filter(Stock.id == stock_id).first()
 
 
 def get_stock_by_code(db: Session, stock_code: str):
-    return db.query(models.Stock).filter(models.Stock.code == stock_code).first()
+    return db.query(Stock).filter(Stock.code == stock_code).first()
 
 
 def get_stocks(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Stock).offset(skip).limit(limit).all()
+    return db.query(Stock).offset(skip).limit(limit).all()
 
 
-def create_stock(db: Session, stock: schemas.StockCreate):
-    db_stock = models.Stock(code=stock.code, name=stock.name)
+def create_stock(db: Session, stock: StockCreate):
+    db_stock = Stock(code=stock.code, name=stock.name)
     db.add(db_stock)
     db.commit()
     db.refresh(db_stock)
@@ -31,11 +31,11 @@ def create_stock(db: Session, stock: schemas.StockCreate):
     return db_stock
 
 
-def update_stock_in_stock(db: Session, stock: models.Stock, in_stock: bool):
+def update_stock_in_stock(db: Session, stock: Stock, in_stock: bool):
     stock.in_stock = in_stock
     db.commit()
 
 
-def delete_stock(db: Session, stock: models.Stock):
+def delete_stock(db: Session, stock: Stock):
     db.delete(stock)
     db.commit()
