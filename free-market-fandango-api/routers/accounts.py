@@ -6,7 +6,7 @@ from starlette import status
 
 from crud import accounts
 from dependencies import get_db, validate_jwt
-from schemas import Account, AccountCreate
+from schemas import Account, AccountCreate, AccountWithPurchases
 
 router = APIRouter(
     prefix="/accounts",
@@ -33,7 +33,7 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return db_accounts
 
 
-@router.get("/{card_number}", response_model=Account)
+@router.get("/{card_number}", response_model=AccountWithPurchases)
 def read_user(card_number: int, db: Session = Depends(get_db)):
     db_account = accounts.get_account_by_card_number(db, card_number=card_number)
 

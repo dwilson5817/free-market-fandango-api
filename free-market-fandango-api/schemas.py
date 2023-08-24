@@ -64,6 +64,14 @@ class Account(AccountBase):
         orm_mode = True
 
 
+class AccountWithPurchases(Account):
+    balance: float
+    purchases: list['Purchase'] = []
+
+    class Config:
+        orm_mode = True
+
+
 class StockBase(BaseModel):
     code: constr(min_length=1, max_length=5, strip_whitespace=True)
     name: str
@@ -231,7 +239,7 @@ class PriceChange(PriceChangeBase):
     id: int
     new_price: float
     reason: str
-    changed_at = datetime.datetime
+    changed_at: datetime.datetime
 
     class Config:
         orm_mode = True
@@ -248,3 +256,4 @@ class Auth(BaseModel):
 
 Stock.update_forward_refs()
 Event.update_forward_refs()
+AccountWithPurchases.update_forward_refs()
