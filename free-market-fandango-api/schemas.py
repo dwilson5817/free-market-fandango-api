@@ -1,6 +1,6 @@
 import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 from pydantic.types import constr
 
 
@@ -87,6 +87,7 @@ class Stock(StockBase):
     price_changes: list['PriceChange'] = []
     in_stock: bool
 
+    @computed_field
     @property
     def initial_price(self) -> float:
         if len(self.price_changes) == 0:
@@ -94,36 +95,13 @@ class Stock(StockBase):
 
         return self.price_changes[0].new_price
 
+    @computed_field
     @property
     def price(self) -> float:
         if len(self.price_changes) == 0:
             return -1
 
         return self.price_changes[-1].new_price
-
-    # Workaround for serializing properties with pydantic until
-    # https://github.com/samuelcolvin/pydantic/issues/935
-    # is solved
-    @classmethod
-    def get_properties(cls):
-        return [prop for prop in dir(cls) if isinstance(getattr(cls, prop), property)]
-
-    def dict(self, *args, **kwargs):
-        self.__dict__.update(
-            {prop: getattr(self, prop) for prop in self.get_properties()}
-        )
-        return super().dict(*args, **kwargs)
-
-    def json(
-        self,
-        *args,
-        **kwargs,
-    ) -> str:
-        self.__dict__.update(
-            {prop: getattr(self, prop) for prop in self.get_properties()}
-        )
-
-        return super().json(*args, **kwargs)
 
     class Config:
         orm_mode = True
