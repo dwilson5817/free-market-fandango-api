@@ -17,7 +17,7 @@ export class FreeMarketFandangoApiStack extends cdk.Stack {
       lambdaFunctionProps: {
         runtime: lambda.Runtime.PYTHON_3_10,
         handler: 'free-market-fandango-api.main.handler',
-        code: lambda.Code.fromAsset( path.join(__dirname, '../lambda.zip') ),
+        code: lambda.Code.fromAsset( path.join(__dirname, '../free-market-fandango-api') ),
         timeout: cdk.Duration.seconds(15),
         environment: {
           ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || '',
