@@ -14,7 +14,9 @@ python-build:
   script:
   - cd free-market-fandango-api
   - pip install -r requirements.txt -t .
-
+  artifacts:
+    paths:
+      - free-market-fandango-api/
 cdk-deploy:
   id_tokens:
     GITLAB_OIDC_TOKEN:
