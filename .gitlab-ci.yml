@@ -1,9 +1,19 @@
 stages:
   - test
+  - build
   - deploy
 
 sast:
   stage: test
+
+python-build:
+  stage: build
+  image: python:3.10
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/free-market-fandango-api/.cache/pip"
+  script:
+  - cd free-market-fandango-api
+  - pip install -r requirements.txt -t .
 
 cdk-deploy:
   id_tokens:
