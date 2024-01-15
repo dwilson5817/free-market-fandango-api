@@ -1,29 +1,20 @@
 stages:
   - test
-  - build
   - deploy
 
 sast:
   stage: test
 
-python-build:
-  stage: build
-  image: python:3.10
-  variables:
-    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  script:
-  - cd free-market-fandango-api
-  - pip install -r requirements.txt -t .
-  artifacts:
-    paths:
-      - free-market-fandango-api/
 cdk-deploy:
   id_tokens:
     GITLAB_OIDC_TOKEN:
       aud: https://gitlab.dylanw.dev
   image: gitlab.dylanw.dev:5050/images/nodejs-aws-cli:latest
+  services:
+    - docker:24.0.5-dind
   stage: deploy
   script:
+    - apk add --update docker
     - >
       export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s"
       $(aws sts assume-role-with-web-identity
@@ -37,6 +28,8 @@ cdk-deploy:
     - npm run build
     - npm run cdk bootstrap
     - npm run cdk deploy -- --require-approval=never
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
