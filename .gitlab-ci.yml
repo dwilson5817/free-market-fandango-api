@@ -9,13 +9,12 @@ cdk-deploy:
   id_tokens:
     GITLAB_OIDC_TOKEN:
       aud: https://gitlab.dylanw.dev
-  image: gitlab.dylanw.dev:5050/images/nodejs-aws-cli:latest
+  image: docker:24.0.5
   services:
     - docker:24.0.5-dind
   stage: deploy
   before_script:
-    - apk add --no-cache docker-cli
-    - until docker info; do sleep 1; done
+    - apk add --no-cache aws-cli npm
   script:
     - >
       export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s"
@@ -30,10 +29,6 @@ cdk-deploy:
     - npm run build
     - npm run cdk bootstrap
     - npm run cdk deploy -- --require-approval=never
-  variables:
-    DOCKER_HOST: tcp://docker:2376
-    DOCKER_TLS_CERTDIR: "/certs"
-    DOCKER_TLS_VERIFY: '1'
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
