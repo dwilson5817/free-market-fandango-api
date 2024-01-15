@@ -14,7 +14,7 @@ cdk-deploy:
     - docker:24.0.5-dind
   stage: deploy
   script:
-    - apk add --update docker
+    - apk add --no-cache docker-cli
     - >
       export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s"
       $(aws sts assume-role-with-web-identity
