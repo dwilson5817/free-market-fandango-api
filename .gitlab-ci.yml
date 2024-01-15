@@ -29,6 +29,7 @@ cdk-deploy:
     - npm run cdk bootstrap
     - npm run cdk deploy -- --require-approval=never
   variables:
+    DOCKER_HOST: tcp://docker:2376
     DOCKER_TLS_CERTDIR: "/certs"
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
