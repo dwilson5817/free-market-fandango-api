@@ -11,7 +11,7 @@ cdk-deploy:
       aud: https://gitlab.dylanw.dev
   image: gitlab.dylanw.dev:5050/images/nodejs-aws-cli:latest
   services:
-    - docker:24.0.5-dind
+    - docker:dind
   stage: deploy
   script:
     - apk add --update docker
@@ -28,8 +28,6 @@ cdk-deploy:
     - npm run build
     - npm run cdk bootstrap
     - npm run cdk deploy -- --require-approval=never
-  variables:
-    DOCKER_TLS_CERTDIR: "/certs"
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
