@@ -13,12 +13,14 @@ export class FreeMarketFandangoApiStack extends cdk.Stack {
     super(scope, id, props);
 
     const table = new dynamodb.TableV2(this, 'FreeMarketFandango', {
-      partitionKey: { name: 'pk', type: dynamodb.AttributeType.STRING },
+      partitionKey: { name: 'PK', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'SK', type: dynamodb.AttributeType.STRING },
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
     const certificate = certificatemanager.Certificate.fromCertificateArn(this, 'Certificate', Constants.certificateArn);
 
-    new ApiGatewayToLambda(this, 'API', {
+    const apiGatewayToLambda = new ApiGatewayToLambda(this, 'API', {
       lambdaFunctionProps: {
         runtime: lambda.Runtime.PYTHON_3_10,
         handler: 'free-market-fandango-api.main.handler',
@@ -26,15 +28,14 @@ export class FreeMarketFandangoApiStack extends cdk.Stack {
           bundling: {
             image: lambda.Runtime.PYTHON_3_10.bundlingImage,
             command: [
-              'bash', '-c',
-              'pip install -r requirements.txt -t /asset-output && cp -au . /asset-output'
+              'bash', '-c', 'pip install -r requirements.txt -t /asset-output && cp -au . /asset-output'
             ],
           },
         }),
         timeout: cdk.Duration.seconds(15),
         environment: {
           ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || '',
-          SECRET_KEY: process.env.SECRET_KEY || '',
+          SECRET_KEY: require('crypto').randomBytes(64).toString('hex'),
           SPOTIPY_CLIENT_ID: process.env.SPOTIPY_CLIENT_ID || '',
           SPOTIPY_CLIENT_SECRET: process.env.SPOTIPY_CLIENT_SECRET || '',
           SPOTIPY_REDIRECT_URI: process.env.SPOTIPY_REDIRECT_URI || '',
@@ -56,5 +57,7 @@ export class FreeMarketFandangoApiStack extends cdk.Stack {
         }
       }
     });
+
+    table.grantReadWriteData(apiGatewayToLambda.lambdaFunction);
   }
 }
