@@ -1,12 +1,15 @@
 import os
 from typing import Annotated
-from fastapi import Depends, HTTPException, status
+
+import boto3
+from fastapi import HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
+from starlette import status
 
-from constants import ALGORITHM
-from database import SessionLocal
+from .constants import ALGORITHM
 
+table_name = os.environ["TABLE_NAME"]
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
@@ -18,14 +21,14 @@ async def validate_jwt(token: Annotated[str, Depends(oauth2_scheme)]):
     )
 
     try:
-        jwt.decode(token, os.environ['SECRET_KEY'], algorithms=[ALGORITHM])
+        jwt.decode(token, os.environ["SECRET_KEY"], algorithms=[ALGORITHM])
     except JWTError:
         raise credentials_exception
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+def get_table():
+    dynamodb = boto3.resource("dynamodb")
+
+    table = dynamodb.Table(table_name)
+
+    return table

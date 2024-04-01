@@ -17,7 +17,6 @@ contains the actual Lambda code.
 The following environment variables are required:
 
 - `ADMIN_PASSWORD`: admin password required to authenticate in the admin panel.
-- `SECRET_KEY`: secret key used for signing JWT tokens.
 
 #### License
 
