@@ -45,7 +45,10 @@ export class FreeMarketFandangoApiStack extends cdk.Stack {
       apiGatewayProps: {
         restApiName: this.stackName,
         defaultCorsPreflightOptions: {
-          allowOrigins: [ `https://${Constants.frontendDomainName}` ],
+          allowOrigins: [
+              `https://${Constants.frontendDomainName}`,  // Production
+              'http://localhost:5173'                     // Development
+          ],
           allowMethods: [ 'GET', 'PUT', 'POST', 'DELETE' ]
         },
         domainName: {
