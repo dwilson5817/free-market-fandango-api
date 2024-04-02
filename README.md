@@ -23,8 +23,8 @@ The following environment variables are required:
 Licensed under the GNU General Public License v3.0.
 
 ```
-Check Character Calcalculator - Find check character of a location
-Copyright (C) 2020 Dylan Wilson
+Free Market Fandango - A stock market themed party
+Copyright (C) 2024 Dylan Wilson
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
