@@ -1,28 +1,52 @@
-from sqlalchemy.orm import Session
-
-from models import SpotifyToken
+KEY = "SpotifyToken"
 
 
-def get_token(db: Session) -> SpotifyToken:
-    return db.query(SpotifyToken).first()
+def _item_to_dict(item):
+    return {
+        "access_token": item["AccessToken"],
+        "token_type": item["TokenType"],
+        "expires_in": item["ExpiresIn"],
+        "scope": item["Scope"],
+        "expires_at": item["ExpiresAt"],
+        "refresh_token": item["RefreshToken"],
+    }
 
 
-def create_token(db: Session, token_info: dict) -> SpotifyToken:
-    db_token = get_token(db=db)
+def read_spotify_token(table):
+    response = table.get_item(
+        Key={
+            "PK": KEY,
+            "SK": KEY,
+        }
+    )
 
-    if db_token:
-        delete_token(db=db)
+    if "Item" not in response:
+        return None
 
-    db_token = SpotifyToken(**token_info)
-    db.add(db_token)
-    db.commit()
-    db.refresh(db_token)
-
-    return db_token
+    return _item_to_dict(response["Item"])
 
 
-def delete_token(db: Session):
-    db_token = get_token(db=db)
+def update_spotify_token(table, token):
+    print(token)
 
-    db.delete(db_token)
-    db.commit()
+    table.put_item(
+        Item={
+            "PK": KEY,
+            "SK": KEY,
+            "AccessToken": token["access_token"],
+            "TokenType": token["token_type"],
+            "ExpiresIn": token["expires_in"],
+            "Scope": token["scope"],
+            "ExpiresAt": token["expires_at"],
+            "RefreshToken": token["refresh_token"],
+        }
+    )
+
+
+def delete_spotify_token(table):
+    table.delete_item(
+        Key={
+            "PK": KEY,
+            "SK": KEY,
+        }
+    )

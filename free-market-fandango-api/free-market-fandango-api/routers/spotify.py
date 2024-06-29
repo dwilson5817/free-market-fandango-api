@@ -1,36 +1,35 @@
 from fastapi import APIRouter, Depends
 from spotipy import CacheHandler, Spotify, SpotifyOAuth
-from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse, Response
 
-from crud import spotify
-from dependencies import get_db, validate_jwt
+from ..crud import spotify
+from ..dependencies import get_table, validate_jwt
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/spotify",
+    tags=["spotify"],
+    dependencies=[Depends(get_table)],
+)
 
 
 class SettingsCacheHandler(CacheHandler):
-    def __init__(self, db):
-        self.db = db
+    def __init__(self, table):
+        self.table = table
 
     def get_cached_token(self):
-        db_token = spotify.get_token(db=self.db)
-
-        if not db_token:
-            return None
-
-        return vars(db_token)
+        return spotify.read_spotify_token(self.table)
 
     def save_token_to_cache(self, token_info):
-        spotify.create_token(db=self.db, token_info=token_info)
+        spotify.update_spotify_token(self.table, token_info)
 
 
 class SpotifyHandler:
-    def __init__(self, db):
-        self._db = db
-        self._spotify_cache = SettingsCacheHandler(self._db)
-        self._spotify_oauth = SpotifyOAuth(scope='user-read-currently-playing',
-                                           cache_handler=self._spotify_cache)
+    def __init__(self, table):
+        self._table = table
+        self._spotify_cache = SettingsCacheHandler(self._table)
+        self._spotify_oauth = SpotifyOAuth(
+            scope="user-read-currently-playing", cache_handler=self._spotify_cache
+        )
         self._spotify = Spotify(auth_manager=self._spotify_oauth)
 
     def get_auth_url(self):
@@ -52,9 +51,9 @@ class SpotifyHandler:
             return False
 
 
-@router.get("/spotify/account_info/")
-async def spotify_account_info(db: Session = Depends(get_db)):
-    spotify_handler = SpotifyHandler(db=db)
+@router.get("/account_info/")
+async def spotify_account_info(table=Depends(get_table)):
+    spotify_handler = SpotifyHandler(table=table)
 
     if not spotify_handler.is_logged_in():
         return False
@@ -72,19 +71,19 @@ async def spotify_account_info(db: Session = Depends(get_db)):
     return response
 
 
-@router.get("/spotify/redirect/", response_class=RedirectResponse)
-async def spotify_redirect_for_authz(db: Session = Depends(get_db)):
-    spotify_handler = SpotifyHandler(db=db)
+@router.get("/redirect/", response_class=RedirectResponse)
+async def spotify_redirect_for_authz(table=Depends(get_table)):
+    spotify_handler = SpotifyHandler(table=table)
 
     return spotify_handler.get_auth_url()
 
 
-@router.get("/spotify/connect/")
-async def save_auth_token(code: str, db: Session = Depends(get_db)):
-    spotify_handler = SpotifyHandler(db=db)
+@router.get("/connect")
+async def save_auth_token(code: str, table=Depends(get_table)):
+    spotify_handler = SpotifyHandler(table=table)
     spotify_handler.save_auth_token(code)
 
-    data = '''
+    data = """
     <!DOCTYPE html>
     <html lang="en">
       <head>
@@ -97,23 +96,21 @@ async def save_auth_token(code: str, db: Session = Depends(get_db)):
         <a href="#" onclick="close_window();return false;">Close tab</a>
       </body>
     </html>
-    '''
+    """
 
     return Response(content=data, media_type="text/html")
 
 
-@router.get("/spotify/disconnect/", dependencies=[Depends(validate_jwt)])
-async def delete_auth_token(db: Session = Depends(get_db)):
-    spotify.delete_token(db=db)
+@router.get("/disconnect/", dependencies=[Depends(validate_jwt)])
+async def delete_auth_token(table=Depends(get_table)):
+    spotify.delete_spotify_token(table=table)
 
-    return {
-        "message": "Spotify account disconnected successfully."
-    }
+    return {"message": "Spotify account disconnected successfully."}
 
 
-@router.get("/spotify/currently_playing/")
-async def get_spotify_currently_playing(db: Session = Depends(get_db)):
-    spotify_handler = SpotifyHandler(db=db)
+@router.get("/currently_playing/")
+async def get_spotify_currently_playing(table=Depends(get_table)):
+    spotify_handler = SpotifyHandler(table=table)
 
     if not spotify_handler.is_logged_in():
         return False
@@ -126,10 +123,12 @@ async def get_spotify_currently_playing(db: Session = Depends(get_db)):
     response = {
         "name": currently_playing["item"]["name"],
         "album": currently_playing["item"]["album"]["name"],
-        "artists": ', '.join([artist["name"] for artist in currently_playing["item"]["album"]["artists"]]),
+        "artists": ", ".join(
+            [artist["name"] for artist in currently_playing["item"]["album"]["artists"]]
+        ),
         "artwork": currently_playing["item"]["album"]["images"][1]["url"],
         "progress_ms": currently_playing["progress_ms"],
-        "duration_ms": currently_playing["item"]["duration_ms"]
+        "duration_ms": currently_playing["item"]["duration_ms"],
     }
 
     return response
