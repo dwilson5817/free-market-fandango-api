@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from mangum import Mangum
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException
+from starlette.responses import JSONResponse
 
+from .schemas import APIError
 from .routers import auth, card, event, history, market, purchase, setting, stock
 
 app = FastAPI(
@@ -17,6 +20,15 @@ app = FastAPI(
         "url": "https://gitlab.dylanw.dev/free-market-fandango/api/-/raw/main/LICENSE",
     },
 )
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request, exc):
+    return JSONResponse(
+            status_code=exc.status_code,
+            content=APIError(message=exc.detail)
+        )
+
 
 origins = [
     "https://market.dylanw.dev",

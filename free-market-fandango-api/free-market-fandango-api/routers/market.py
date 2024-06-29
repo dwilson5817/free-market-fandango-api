@@ -1,7 +1,7 @@
 import datetime
 
-from fastapi import APIRouter, Depends
-from starlette.responses import JSONResponse
+from fastapi import APIRouter, Depends, HTTPException
+from starlette import status
 
 from ..crud import market, card, event, stock
 from ..dependencies import get_table, validate_jwt
@@ -28,9 +28,7 @@ def read_active_market(table=Depends(get_table)):
     current_market = market.read_active_market(table)
 
     if not current_market:
-        return JSONResponse(status_code=404, content={
-            "message": "A market has never been opened"
-        })
+        raise HTTPException(status_code=404, detail="A market has never been opened")
 
     return current_market
 
@@ -44,6 +42,10 @@ def read_active_market(table=Depends(get_table)):
             "description": "A market is already open or no cards, events or stocks have been created.",
             "model": APIError,
         },
+        401: {
+            "description": "Failed to validate credentials.",
+            "model": APIError,
+        }
     }
 )
 def open_market(table=Depends(get_table)):
@@ -53,41 +55,33 @@ def open_market(table=Depends(get_table)):
         current_market = market.read_market(table, active_market.uuid)
 
         if current_market.active:
-            return JSONResponse(
-                status_code=400,
-                content={
-                    "message": "A market is already open"
-                }
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="A market has never been opened"
             )
 
     cards = card.read_cards(table)
 
     if not cards:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "message": "No cards have been created"
-            }
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No cards have been created"
         )
 
     stocks = stock.read_stocks(table)
 
     if not stocks:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "message": "No stocks have been created"
-            }
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No stocks have been created"
         )
 
     events = event.read_events(table)
 
     if not events:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "message": "No events have been created"
-            }
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No events have been created"
         )
 
     return market.open_market(
@@ -110,11 +104,9 @@ def read_market(market_uuid: str, table=Depends(get_table)):
     result = market.read_market(table, market_uuid)
 
     if not result:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "message": "The requested market does not exist."
-            }
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The requested market does not exist."
         )
 
     return result
@@ -128,6 +120,10 @@ def read_market(market_uuid: str, table=Depends(get_table)):
             "description": "The market has already been closed.",
             "model": APIError,
         },
+        401: {
+            "description": "Failed to validate credentials.",
+            "model": APIError,
+        },
         404: {
             "description": "The requested market does not exist.",
             "model": APIError,
@@ -138,19 +134,15 @@ def stop_market(market_uuid: str, table=Depends(get_table), ends_in: int | None 
     current_market = market.read_market(table, market_uuid)
 
     if current_market is None:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "message": "The requested market does not exist."
-            }
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The requested market does not exist."
         )
 
     if not current_market.active:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "message": "The market has already been closed"
-            }
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The market has already been closed"
         )
 
     current_market.closed_at = datetime.datetime.now() + datetime.timedelta(minutes=ends_in)
