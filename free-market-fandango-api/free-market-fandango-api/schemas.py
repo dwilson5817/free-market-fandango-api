@@ -16,6 +16,10 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
+class APIError(BaseModel):
+    message: str
+
+
 class Card(BaseModel):
     card_number: int
     name: constr(min_length=1, max_length=50, strip_whitespace=True)
