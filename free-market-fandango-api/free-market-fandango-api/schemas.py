@@ -1,6 +1,6 @@
 import datetime
 import decimal
-from typing import Self, Optional
+from typing import Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, constr, Field, computed_field, model_validator
@@ -32,7 +32,7 @@ class EventIn(BaseModel):
     tags: list[str] = []
 
     @model_validator(mode='after')
-    def video_url_required_when_breaking(self) -> Self:
+    def video_url_required_when_breaking(self):
         if self.breaking and not self.video_url:
             raise ValueError('video_url is required when breaking is true')
         return self
