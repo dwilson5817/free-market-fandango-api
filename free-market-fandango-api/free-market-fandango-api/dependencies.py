@@ -9,7 +9,7 @@ from starlette import status
 
 from .constants import ALGORITHM
 
-table_name = os.environ["TABLE_NAME"]
+table_name = os.environ["DYNAMODB_TABLE_ARN"]
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
