@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from mangum import Mangum
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import auth
+from .routers import auth, card, event, history, market, purchase, setting, stock
 
 app = FastAPI(
     title="Free Market Fandango",
@@ -32,5 +32,12 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(card.router)
+app.include_router(event.router)
+app.include_router(history.router)
+app.include_router(purchase.router)
+app.include_router(market.router)
+app.include_router(setting.router)
+app.include_router(stock.router)
 
 handler = Mangum(app, lifespan="off")
