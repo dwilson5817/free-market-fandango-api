@@ -49,7 +49,7 @@ app.include_router(stock.router)
 async def http_exception_handler(request, exc):
     return JSONResponse(
             status_code=exc.status_code,
-            content=APIError(message=exc.detail)
+            content=APIError(message=exc.detail).model_dump()
         )
 
 
