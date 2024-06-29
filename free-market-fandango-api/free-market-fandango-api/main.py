@@ -22,14 +22,6 @@ app = FastAPI(
 )
 
 
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request, exc):
-    return JSONResponse(
-            status_code=exc.status_code,
-            content=APIError(message=exc.detail)
-        )
-
-
 origins = [
     "https://market.dylanw.dev",
     "http://localhost:5173",
@@ -51,5 +43,14 @@ app.include_router(purchase.router)
 app.include_router(market.router)
 app.include_router(setting.router)
 app.include_router(stock.router)
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request, exc):
+    return JSONResponse(
+            status_code=exc.status_code,
+            content=APIError(message=exc.detail)
+        )
+
 
 handler = Mangum(app, lifespan="off")
