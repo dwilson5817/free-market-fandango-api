@@ -7,7 +7,7 @@ from starlette import status
 
 from ..constants import ACCESS_TOKEN_EXPIRE_MINUTES
 from ..crud.auth import create_access_token
-from ..schemas import Token, Auth
+from ..schemas import Token, Auth, APIError
 
 router = APIRouter(
     prefix="/auth",
@@ -19,7 +19,10 @@ router = APIRouter(
     "",
     response_model=Token,
     responses={
-        401: {"description": "Unauthorized"}
+        401: {
+            "description": "Incorrect authentication details provided.",
+            "model": APIError,
+        },
     },
 )
 async def request_access_token(auth: Auth):
@@ -29,6 +32,7 @@ async def request_access_token(auth: Auth):
             headers={
                 "WWW-Authenticate": "Bearer"
             },
+            detail="Incorrect authentication details provided."
         )
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)

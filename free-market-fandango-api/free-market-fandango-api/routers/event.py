@@ -8,7 +8,7 @@ from starlette.status import HTTP_204_NO_CONTENT
 
 from ..crud import event
 from ..dependencies import get_table, validate_jwt
-from ..schemas import EventIn, EventOut
+from ..schemas import EventIn, EventOut, APIError
 
 router = APIRouter(
     prefix="/event",
@@ -20,7 +20,13 @@ router = APIRouter(
 @router.put(
     "",
     response_model=EventOut,
-    dependencies=[Depends(validate_jwt)]
+    dependencies=[Depends(validate_jwt)],
+    responses={
+        401: {
+            "description": "Failed to validate credentials.",
+            "model": APIError,
+        },
+    }
 )
 def create_event(new_event: EventIn, table=Depends(get_table)):
     return event.update_event(table, new_event)
@@ -38,7 +44,10 @@ def read_events(table=Depends(get_table)):
     "/{event_id}",
     response_model=list[EventOut],
     responses={
-        404: {"description": "Not found"}
+        404: {
+            "description": "Event ID does not exist.",
+            "model": APIError,
+        },
     }
 )
 def read_event(event_id: UUID, table=Depends(get_table)):
@@ -54,6 +63,12 @@ def read_event(event_id: UUID, table=Depends(get_table)):
     "/{event_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[Depends(validate_jwt)],
+    responses={
+        401: {
+            "description": "Failed to validate credentials.",
+            "model": APIError,
+        },
+    }
 )
 def delete_event(event_id: str, table=Depends(get_table)):
     event.delete_event(table, event_id)

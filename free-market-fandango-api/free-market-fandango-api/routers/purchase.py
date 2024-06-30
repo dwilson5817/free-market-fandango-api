@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from ..crud import market, purchase
 from ..dependencies import get_table, validate_jwt
-from ..schemas import PurchaseIn, PurchaseOut
+from ..schemas import PurchaseIn, PurchaseOut, APIError
 
 router = APIRouter(
     prefix="/market/{market_uuid}/purchase",
@@ -28,8 +28,18 @@ def read_purchases_for_card(market_uuid: str, card_number: int, table=Depends(ge
     response_model=PurchaseOut,
     dependencies=[Depends(validate_jwt)],
     responses={
-        400: {"description": "Bad Request"},
-        404: {"description": "Not Found"},
+        400: {
+            "description": "Market is closed, stock price has changed or card has insufficient balance.",
+            "model": APIError,
+        },
+        401: {
+            "description": "Failed to validate credentials.",
+            "model": APIError,
+        },
+        404: {
+            "description": "Market, stock or card does not exist.",
+            "model": APIError,
+        },
     },
 )
 def create_purchase(market_uuid: str, new_purchase: PurchaseIn, table=Depends(get_table)):
@@ -66,7 +76,13 @@ def create_purchase(market_uuid: str, new_purchase: PurchaseIn, table=Depends(ge
 @router.get(
     "",
     response_model=list[PurchaseOut],
-    dependencies=[Depends(validate_jwt)]
+    dependencies=[Depends(validate_jwt)],
+    responses={
+        401: {
+            "description": "Failed to validate credentials.",
+            "model": APIError,
+        },
+    },
 )
 def read_purchases(market_uuid: str, table=Depends(get_table)):
     return purchase.read_purchases(table, market_uuid)
