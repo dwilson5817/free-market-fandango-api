@@ -115,6 +115,7 @@ def read_market(market_uuid: str, table=Depends(get_table)):
 @router.delete(
     "/{market_uuid}",
     dependencies=[Depends(validate_jwt)],
+    response_model=Market,
     responses={
         400: {
             "description": "The market has already been closed.",
