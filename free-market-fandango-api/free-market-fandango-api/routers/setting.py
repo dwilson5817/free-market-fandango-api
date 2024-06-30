@@ -30,6 +30,7 @@ def read_settings(table=Depends(get_table)):
 
 @router.put(
     "",
+    response_model=list[Setting],
     dependencies=[Depends(validate_jwt)],
     responses={
         401: {
