@@ -25,6 +25,7 @@ def read_stocks(table=Depends(get_table)):
 @router.put(
     "",
     dependencies=[Depends(validate_jwt)],
+    response_model=Stock,
     responses={
         401: {
             "description": "Failed to validate credentials.",
