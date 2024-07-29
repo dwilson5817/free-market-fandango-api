@@ -29,9 +29,6 @@ export class FreeMarketFandangoApiStack extends cdk.Stack {
       eventQueue: eventQueue.sqsQueue
     });
 
-    new cdk.CfnOutput(this, 'ApiEndpointUrl', {
-      value: api.apiGatewayToLambda.apiGateway.url,
-      exportName: 'ApiEndpointUrl',
-    });
+    new cdk.CfnOutput(this, 'ApiEndpointUrl', { value: api.apiGatewayToLambda.apiGateway.url });
   }
 }
