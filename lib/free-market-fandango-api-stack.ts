@@ -19,7 +19,7 @@ export class FreeMarketFandangoApiStack extends cdk.Stack {
       dataTable,
     })
 
-    const api = new ApiConstruct(this, 'API', {
+    new ApiConstruct(this, 'API', {
       dataTable,
       eventQueue: eventQueue.sqsQueue
     })
@@ -28,7 +28,5 @@ export class FreeMarketFandangoApiStack extends cdk.Stack {
       dataTable,
       eventQueue: eventQueue.sqsQueue
     });
-
-    new cdk.CfnOutput(this, 'ApiEndpointUrl', { value: api.apiGatewayToLambda.apiGateway.url });
   }
 }

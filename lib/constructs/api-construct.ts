@@ -6,11 +6,14 @@ import { buildAllowedOrigins, buildLambdaProps } from "../utils";
 import { ApiGatewayToLambda } from "@aws-solutions-constructs/aws-apigateway-lambda";
 import {
     ADMIN_PASSWORD,
+    API_DOMAIN_NAME,
+    CERTIFICATE_ARN,
     SPOTIPY_CLIENT_ID,
     SPOTIPY_CLIENT_SECRET,
     SPOTIPY_REDIRECT_URI
 } from "../env";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
+import * as certificatemanager from "aws-cdk-lib/aws-certificatemanager";
 
 type ApiConstructProps = {
   dataTable: dynamodb.TableV2,
@@ -18,12 +21,12 @@ type ApiConstructProps = {
 };
 
 export class ApiConstruct extends Construct {
-  readonly apiGatewayToLambda;
-
   constructor(scope: Construct, id: string, props: ApiConstructProps) {
     super(scope, id);
 
-    this.apiGatewayToLambda = new ApiGatewayToLambda(this, 'API', {
+    const certificate = CERTIFICATE_ARN ? certificatemanager.Certificate.fromCertificateArn(this, 'Certificate', CERTIFICATE_ARN) : undefined;
+
+    const api = new ApiGatewayToLambda(this, 'API', {
       lambdaFunctionProps: buildLambdaProps('free-market-fandango-api', {
         ADMIN_PASSWORD,
         SPOTIPY_CLIENT_ID,
@@ -39,13 +42,19 @@ export class ApiConstruct extends Construct {
           allowOrigins: buildAllowedOrigins(),
           allowMethods: [ 'GET', 'PUT', 'POST', 'DELETE' ]
         },
+        ...API_DOMAIN_NAME && {
+          domainName: {
+            domainName: API_DOMAIN_NAME,
+            certificate: certificate,
+          },
+        },
         defaultMethodOptions: {
           authorizationType: apigateway.AuthorizationType.NONE
         }
       }
     });
 
-    props.dataTable.grantReadWriteData(this.apiGatewayToLambda.lambdaFunction);
-    props.eventQueue.grantSendMessages(this.apiGatewayToLambda.lambdaFunction);
+    props.dataTable.grantReadWriteData(api.lambdaFunction);
+    props.eventQueue.grantSendMessages(api.lambdaFunction);
   }
 }
