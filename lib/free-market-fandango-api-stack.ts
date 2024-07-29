@@ -30,7 +30,7 @@ export class FreeMarketFandangoApiStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, 'ApiEndpointUrl', {
-      value: api.apiGatewayToLambda.apiGateway.url,
+      value: api.apiGatewayToLambda.apiGateway.restApiId,
       exportName: 'ApiEndpointUrl',
     });
   }
