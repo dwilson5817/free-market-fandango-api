@@ -100,3 +100,25 @@ class Stock(BaseModel):
     name: str
     tags: list[str] = []
     initial_price: decimal.Decimal
+
+
+class SpotifyConnectRequest(BaseModel):
+    auth_code: str
+
+
+class SpotifyRedirectResponse(BaseModel):
+    redirect_url: str
+
+
+class SpotifyAccountResponse(BaseModel):
+    display_name: str
+    profile_picture: str
+
+
+class SpotifyCurrentlyPlayingResponse(BaseModel):
+    title: str
+    album: str
+    artists: str
+    artwork_url: str
+    progress_ms: int
+    duration_ms: int

@@ -5,7 +5,7 @@ from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
 
 from .schemas import APIError
-from .routers import auth, card, event, history, market, purchase, setting, stock
+from .routers import auth, card, event, history, market, purchase, setting, stock, spotify
 
 app = FastAPI(
     title="Free Market Fandango",
@@ -43,6 +43,7 @@ app.include_router(purchase.router)
 app.include_router(market.router)
 app.include_router(setting.router)
 app.include_router(stock.router)
+app.include_router(spotify.router)
 
 
 @app.exception_handler(HTTPException)

@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from spotipy import CacheHandler, Spotify, SpotifyOAuth
-from starlette.responses import RedirectResponse, Response
+from starlette.responses import Response
 
 from ..crud import spotify
 from ..dependencies import get_table, validate_jwt
+from ..schemas import SpotifyConnectRequest, SpotifyAccountResponse, APIError, SpotifyRedirectResponse, \
+    SpotifyCurrentlyPlayingResponse
 
 router = APIRouter(
     prefix="/spotify",
@@ -51,84 +53,97 @@ class SpotifyHandler:
             return False
 
 
-@router.get("/account_info/")
+@router.get(
+    "/account",
+    response_model=SpotifyAccountResponse,
+    responses={
+        400: {
+            "description": "No account connected, connect an account first",
+            "model": APIError,
+        }
+    },
+)
 async def spotify_account_info(table=Depends(get_table)):
     spotify_handler = SpotifyHandler(table=table)
 
     if not spotify_handler.is_logged_in():
-        return False
+        raise HTTPException(status_code=400, detail="No account connected, connect an account first")
 
     account_info = spotify_handler.get_account_info()
 
     if not account_info:
-        return False
+        raise HTTPException(status_code=400, detail="No account connected, connect an account first")
 
-    response = {
-        "name": account_info["display_name"],
-        "profile_picture": account_info["images"][0]["url"],
-    }
-
-    return response
+    return SpotifyAccountResponse(
+        display_name=account_info["display_name"],
+        profile_picture=account_info["images"][0]["url"]
+    )
 
 
-@router.get("/redirect/", response_class=RedirectResponse)
+@router.get(
+    "/redirect",
+    response_model=SpotifyRedirectResponse,
+    dependencies=[Depends(validate_jwt)],
+)
 async def spotify_redirect_for_authz(table=Depends(get_table)):
     spotify_handler = SpotifyHandler(table=table)
 
-    return spotify_handler.get_auth_url()
+    return SpotifyRedirectResponse(
+        redirect_url=spotify_handler.get_auth_url()
+    )
 
 
-@router.get("/connect")
-async def save_auth_token(code: str, table=Depends(get_table)):
+@router.post(
+    "/connect",
+    dependencies=[Depends(validate_jwt)],
+    status_code=204
+)
+async def save_auth_token(request: SpotifyConnectRequest, table=Depends(get_table)):
     spotify_handler = SpotifyHandler(table=table)
-    spotify_handler.save_auth_token(code)
+    spotify_handler.save_auth_token(request.auth_code)
 
-    data = """
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="utf-8">
-        <title>Spotify connected</title>
-      </head>
-      <body>
-        <h2>Spotify connected</h2>
-        <p>You may now close this tab.</p>
-        <a href="#" onclick="close_window();return false;">Close tab</a>
-      </body>
-    </html>
-    """
-
-    return Response(content=data, media_type="text/html")
+    return Response(status_code=204)
 
 
-@router.get("/disconnect/", dependencies=[Depends(validate_jwt)])
+@router.post(
+    "/disconnect",
+    dependencies=[Depends(validate_jwt)],
+    status_code=204
+)
 async def delete_auth_token(table=Depends(get_table)):
     spotify.delete_spotify_token(table=table)
 
-    return {"message": "Spotify account disconnected successfully."}
+    return Response(status_code=204)
 
 
-@router.get("/currently_playing/")
+@router.get(
+    "/currently_playing",
+    response_model=SpotifyCurrentlyPlayingResponse,
+    responses={
+        400: {
+            "description": "No account connected or nothing is playing",
+            "model": APIError,
+        }
+    },
+)
 async def get_spotify_currently_playing(table=Depends(get_table)):
     spotify_handler = SpotifyHandler(table=table)
 
     if not spotify_handler.is_logged_in():
-        return False
+        raise HTTPException(status_code=400, detail="No account connected, connect an account first")
 
     currently_playing = spotify_handler.currently_playing()
 
     if not currently_playing:
-        return False
+        raise HTTPException(status_code=400, detail="Nothing is currently playing")
 
-    response = {
-        "name": currently_playing["item"]["name"],
-        "album": currently_playing["item"]["album"]["name"],
-        "artists": ", ".join(
-            [artist["name"] for artist in currently_playing["item"]["album"]["artists"]]
-        ),
-        "artwork": currently_playing["item"]["album"]["images"][1]["url"],
-        "progress_ms": currently_playing["progress_ms"],
-        "duration_ms": currently_playing["item"]["duration_ms"],
-    }
-
-    return response
+    return SpotifyCurrentlyPlayingResponse(
+        title=currently_playing["item"]["name"],
+        album=currently_playing["item"]["album"]["name"],
+        artists=", ".join(
+                [artist["name"] for artist in currently_playing["item"]["album"]["artists"]]
+            ),
+        artwork_url=currently_playing["item"]["album"]["images"][1]["url"],
+        progress_ms=currently_playing["progress_ms"],
+        duration_ms=currently_playing["item"]["duration_ms"]
+    )
