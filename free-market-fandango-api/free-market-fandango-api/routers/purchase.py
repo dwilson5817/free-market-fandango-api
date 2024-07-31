@@ -23,6 +23,14 @@ def read_purchases_for_card(market_uuid: str, card_number: int, table=Depends(ge
     return purchase.read_purchases_by_card_number(table, market_uuid, card_number)
 
 
+@router.get(
+    "",
+    response_model=list[PurchaseOut],
+)
+def read_purchases(market_uuid: str, table=Depends(get_table)):
+    return purchase.read_purchases(table, market_uuid)
+
+
 @router.post(
     "",
     response_model=PurchaseOut,
