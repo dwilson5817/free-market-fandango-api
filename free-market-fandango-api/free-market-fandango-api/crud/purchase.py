@@ -3,9 +3,9 @@ import decimal
 
 from boto3.dynamodb.conditions import Key
 
-from ..utils import build_key, explode_key, notify_purchase_event
 from ..constants import KeyComponents
-from ..schemas import PurchaseIn, PurchaseOut
+from ..schemas import PurchaseOut
+from ..utils import build_key, explode_key, notify_purchase_event
 
 
 def _item_to_model(item):
@@ -42,9 +42,7 @@ def read_purchases_by_card_number(table, market_uuid: str, card_number: int):
     return [_item_to_model(item) for item in response["Items"]]
 
 
-def create_purchase(table, market_uuid: str, purchase_request: PurchaseIn, new_balance: decimal.Decimal) -> PurchaseOut:
-    purchase = PurchaseOut(**purchase_request.model_dump())
-
+def create_purchase(table, market_uuid: str, purchase: PurchaseOut, new_balance: decimal.Decimal) -> PurchaseOut:
     with table.batch_writer() as batch:
         batch.put_item(
             Item={

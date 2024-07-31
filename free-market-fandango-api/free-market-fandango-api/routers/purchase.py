@@ -64,25 +64,14 @@ def create_purchase(market_uuid: str, new_purchase: PurchaseIn, table=Depends(ge
     if card_balance is None:
         raise HTTPException(status_code=404, detail="Card does not exist")
 
-    new_purchase.previous_balance = card_balance.balance
+    purchase_out = PurchaseOut(
+        **new_purchase.model_dump(),
+        previous_balance=card_balance.balance
+    )
+
     new_balance = card_balance.balance - new_purchase.price
 
     if new_balance < 0:
         raise HTTPException(status_code=400, detail="Insufficient card balance")
 
-    return purchase.create_purchase(table, market_uuid, new_purchase, new_balance)
-
-
-@router.get(
-    "",
-    response_model=list[PurchaseOut],
-    dependencies=[Depends(validate_jwt)],
-    responses={
-        401: {
-            "description": "Failed to validate credentials.",
-            "model": APIError,
-        },
-    },
-)
-def read_purchases(market_uuid: str, table=Depends(get_table)):
-    return purchase.read_purchases(table, market_uuid)
+    return purchase.create_purchase(table, market_uuid, purchase_out, new_balance)

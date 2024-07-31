@@ -83,8 +83,6 @@ class PurchaseIn(BaseModel):
     price: decimal.Decimal
     stock_code: str
     card_number: int
-    previous_balance: decimal.Decimal = 0
-    timestamp: datetime.datetime = Field(default_factory=datetime.datetime.now)
 
 
 class PurchaseOut(PurchaseIn):
