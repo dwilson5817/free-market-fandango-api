@@ -13,10 +13,11 @@ build-zip:
     - apt install zip -y
 
   script:
-    - pip install -r requirements.txt -t /asset-output
-    - cp -au . /asset-output
-    - zip -r $CI_PROJECT_NAME.zip /asset-output
+    - pip install -r requirements.txt -t /build
+    - cp -au . /build
+    - cd /build
+    - zip -r /$CI_PROJECT_NAME.zip .
 
   artifacts:
     paths:
-      - $CI_PROJECT_NAME.zip
+      - /$CI_PROJECT_NAME.zip
