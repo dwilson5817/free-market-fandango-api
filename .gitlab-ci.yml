@@ -1,15 +1,2 @@
-stages:
-  - build
-
-build-zip:
-  image: python:3.12
-  stage: build
-  before_script:
-    - apt update
-    - apt install zip -y
-  script:
-    - pip install -r requirements.txt -t .
-    - zip -r $CI_PROJECT_NAME.zip .
-  artifacts:
-    paths:
-      - $CI_PROJECT_NAME.zip
+include:
+  - component: $CI_SERVER_FQDN/infrastructure/cdk-deployment-base/python-lambda-build@1.1.0
