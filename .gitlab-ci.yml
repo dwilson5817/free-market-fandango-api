@@ -1,2 +1,22 @@
-include:
-  - component: $CI_SERVER_FQDN/infrastructure/cdk-deployment-base/js-cdk-deploy@1.0.0
+default:
+  image:
+    name: python:3.13
+
+stages:
+  - build
+
+build-zip:
+  stage: build
+
+  before_script:
+    - apt update
+    - apt install zip -y
+
+  script:
+    - pip install -r requirements.txt -t /asset-output
+    - cp -au . /asset-output
+    - zip -r $CI_PROJECT_NAME.zip /asset-output
+
+  artifacts:
+    paths:
+      - $CI_PROJECT_NAME.zip
